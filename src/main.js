@@ -24,7 +24,7 @@ const earth = new Earth(new THREE.Vector3(0, 0, 0), 6371000);
 scene.add(earth.getObject());
 
 const satellite = new Satellite(new THREE.Vector3(0, 0,6371000 + 600000)); // 600km LEO
-satellite.getObject().scale.set(50000, 50000, 50000);
+satellite.getObject().scale.set(100000, 100000, 100000);
 scene.add(satellite.getObject());
 
 console.log(satellite.getObject());
@@ -78,14 +78,44 @@ window.addEventListener('resize', () => {
 
 // === USER INPUT ===
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'T') {
-    physics.performOrbitalTransfer(1500000); // 1500km altitude
-  }
-  if (e.key === 'B') {
-    physics.applyThrust(10); // Simple boost
-  }
-  if (['1', '2', '3'].includes(e.key)) {
-    console.log(`Camera mode: ${cameraManager.mode}`);
+
+  switch (e.key.toUpperCase()) {
+    /*  
+    unstable not necessary
+    case 'C': // Circular orbit at 800 km
+      physics.changeOrbitType('circular', 800_000);
+      break;
+
+    case 'E': // Elliptical orbit with apoapsis at 1500 km
+      physics.changeOrbitType('elliptical',  800_000);
+      break;
+*/
+    case 'X': // Escape trajectory
+      physics.changeOrbitType('escape');
+      break;
+
+    case 'T': // Orbital transfer to 1500 km
+      physics.performOrbitalTransfer(1500000);
+      break;
+
+    case 'B': // Boost thrust
+      physics.applyThrust(100);
+      break;
+
+    default:
+      break;
+    case 'A':
+      physics.createInclinedOrbit(0, 600_000, 'circular'); 
+
+      break; // Equatorial
+    case 'Z': 
+    physics.createInclinedOrbit(90, 700_000, 'circular'); 
+    
+    break; // Polar
+
+    case 'S': physics.createInclinedOrbit(45, 800_000, 'elliptical');
+    
+    break; // Inclined
   }
 });
 

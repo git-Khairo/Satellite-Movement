@@ -118,7 +118,7 @@ export class PhysicsEngine {
         this.circularizationPending = true;
         this.r2 = r2;
 
-        console.log(`Orbital transfer initiated to ${newAltitude / 1000} km. Circularization pending at apoapsis.`);
+        this.infoBox.innerText = `Orbital transfer initiated to ${newAltitude / 1000} km. Circularization pending at apoapsis.`;
     }
 
     circularize() {
@@ -129,4 +129,70 @@ export class PhysicsEngine {
         this.applyThrust(deltaV2);
         console.log(`Second burn complete. Orbit circularized at ${(this.r2 - this.earthRadius) / 1000} km.`);
     }
+
+    createInclinedOrbit(inclinationDeg, altitude = 500_000, type = "circular") {
+    const inclination = THREE.MathUtils.degToRad(inclinationDeg);
+    const r = this.earthRadius + altitude;
+    const mu = this.G * this.earthMass;
+
+    // Satellite starts at x-axis
+    this.position.set(r, 0, 0);
+
+    // Rotate velocity direction around Z by inclination angle to get orbital plane
+    const speed = type === 'circular' ? Math.sqrt(mu / r)
+                : Math.sqrt(mu * (2 / r - 1 / ((r + r * 1.5) / 2))); // elliptical approx
+
+    const vx = 0;
+    const vy = speed * Math.cos(inclination);
+    const vz = speed * Math.sin(inclination);
+    this.velocity.set(vx, vy, vz);
+
+    this.satellite.getObject().position.copy(this.position);
+    this.pathPoints = [];
+
+    console.log(`🔁 ${type} orbit with inclination: ${inclinationDeg}°, altitude: ${altitude / 1000} km`);
 }
+
+
+changeOrbitType(type, value) {
+    const r1 = this.position.length();
+    const mu = this.G * this.earthMass;
+
+    if (type === 'circular') {
+        const targetRadius = this.earthRadius + value;
+        const vCirc = Math.sqrt(mu / targetRadius);
+        const direction = this.velocity.clone().normalize();
+        this.velocity = direction.multiplyScalar(vCirc);
+        this.position.setLength(targetRadius);
+        this.satellite.getObject().position.copy(this.position);
+        console.log(`✅ Circular orbit set at ${value / 1000} km altitude.`);
+    }
+
+    else if (type === 'elliptical') {
+        const r2 = this.earthRadius + value;
+        const a = 0.5 * (r1 + r2);
+        const vTransfer = Math.sqrt(mu * (2 / r1 - 1 / a));
+        const direction = this.velocity.clone().normalize();
+        this.velocity = direction.multiplyScalar(vTransfer);
+        console.log(`✅ Elliptical transfer orbit set: periapsis=${(r1 - this.earthRadius) / 1000} km, apoapsis=${value / 1000} km.`);
+    }
+
+    else if (type === 'escape') {
+        const escapeV = Math.sqrt(2 * mu / r1);
+        const direction = this.velocity.clone().normalize();
+        this.velocity = direction.multiplyScalar(escapeV * 1.05); // slightly above escape speed
+        console.log(`🚀 Escape orbit initiated with Δv = ${(escapeV * 1.05 - this.velocity.length()).toFixed(2)} m/s`);
+    }
+
+    else {
+        console.warn('❌ Invalid orbit type. Use: "circular", "elliptical", or "escape".');
+    }
+
+    // Reset orbit history for clean path rendering
+    this.pathPoints = [];
+}
+
+
+}
+
+
