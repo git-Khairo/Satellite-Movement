@@ -4,35 +4,131 @@
     <meta charset="utf-8" />
     <title>Satellite Simulator</title>
     <link rel="stylesheet" href="./style.css" />
+    <style>
+      #control-panel {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        color: white;
+        background: rgba(0, 0, 0, 0.6);
+        padding: 10px;
+        font-family: monospace;
+        font-size: 14px;
+        z-index: 1000;
+        width: 200px;
+      }
+      #control-panel label {
+        display: block;
+        margin-bottom: 5px;
+      }
+      #control-panel select,
+      #control-panel input {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: 1px solid #666;
+        padding: 5px;
+        font-family: monospace;
+        font-size: 14px;
+        margin-bottom: 10px;
+      }
+      #control-panel button {
+        width: 100%;
+        background: #333;
+        color: white;
+        border: 1px solid #666;
+        padding: 5px;
+        font-family: monospace;
+        font-size: 14px;
+        cursor: pointer;
+      }
+      #control-panel button:hover {
+        background: #555;
+      }
+      #inclinationDiv {
+        display: none;
+      }
+      #sidebar {
+        position: absolute;
+        top: 210px;
+        left: 10px;
+        color: white;
+        background: rgba(0, 0, 0, 0.6);
+        padding: 10px;
+        font-family: monospace;
+        font-size: 14px;
+        z-index: 1000;
+        width: 250px;
+      }
+    </style>
   </head>
   <body>
     <!-- WebGL Canvas -->
     <canvas class="threejs"></canvas>
 
-    <!-- Debug Info Panel -->
-<div id="debug" style="
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  color: white;
-  background: rgba(0, 0, 0, 0.6);
-  padding: 10px;
-  font-family: monospace;
-  font-size: 14px;
-  z-index: 1000;">
-</div>
+    <!-- Output Panel -->
+    <div id="output" style="
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 10px;
+      font-family: monospace;
+      font-size: 14px;
+      z-index: 1000;">
+    </div>
 
-<div id="output" style="
-  position: absolute;
-  top: 110px; /* shift down 50px or so */
-  left: 10px;
-  color: white;
-  background: rgba(0, 0, 0, 0.6);
-  padding: 10px;
-  font-family: monospace;
-  font-size: 14px;
-  z-index: 1000;">
-</div>
+    <!-- Sidebar for Forces and Dynamics -->
+    <div id="sidebar">
+      <strong>Position (m):</strong><br>
+      <span id="posX"></span><br>
+      <span id="posY"></span><br>
+      <span id="posZ"></span><br>
+      <strong>Velocity (m/s):</strong><br>
+      <span id="velX"></span><br>
+      <span id="velY"></span><br>
+      <span id="velZ"></span><br>
+      <strong>Acceleration (m/s²):</strong><br>
+      <span id="accX"></span><br>
+      <span id="accY"></span><br>
+      <span id="accZ"></span><br>
+      <strong>Forces (N):</strong><br>
+      <span id="forceGravity"></span><br>
+      <span id="forceDrag"></span><br>
+      <strong>Altitude:</strong><br>
+      <span id="altitude"></span>
+    </div>
+
+    <!-- Control Panel -->
+    <div id="control-panel">
+      <h2 style="font-size: 16px; margin-bottom: 10px;">Orbit Controls</h2>
+      <div>
+        <label>Planet</label>
+        <select id="planet">
+          <option value="Earth">Earth</option>
+          <option value="Mars">Mars</option>
+          <option value="Moon">Moon</option>
+        </select>
+      </div>
+      <div>
+        <label>Altitude (km)</label>
+        <input id="altitude" type="number" min="100" max="10000" value="600">
+      </div>
+      <div>
+        <label>Orbit Type</label>
+        <select id="orbitType">
+          <option value="equatorial">Equatorial Circular</option>
+          <option value="polar">Polar Circular</option>
+          <option value="inclined">Inclined Elliptical</option>
+        </select>
+      </div>
+      <div id="inclinationDiv">
+        <label>Inclination (°)</label>
+        <input id="inclination" type="number" min="0" max="180" value="45">
+      </div>
+      <button id="apply">Apply</button>
+    </div>
 
     <!-- Your App Entry Point -->
     <script type="module" src="./main.js"></script>

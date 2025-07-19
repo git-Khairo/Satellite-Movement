@@ -7,9 +7,9 @@ export class CameraManager {
         this.mode = 'free'; // 'free', 'follow', 'top'
 
         window.addEventListener('keydown', (e) => {
-            if (e.key === '1') this.mode = 'free';
-            if (e.key === '2') this.mode = 'follow';
-            if (e.key === '3') this.mode = 'top';
+            if (e.key === 'q') this.mode = 'free';
+            if (e.key === 'w') this.mode = 'follow';
+            if (e.key === 'e') this.mode = 'top';
         });
 
         // Initial camera setup
