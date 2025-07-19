@@ -97,7 +97,7 @@ const animate = () => {
 const vel = physics.velocity.length();
 const alt = pos.distanceTo(earth.getObject().position) - physics.earthRadius;
 
-document.getElementById('debug').innerHTML = `
+document.getElementById('output').innerHTML = `
   <strong>Altitude:</strong> ${(alt / 1000).toFixed(2)} km<br>
   <strong>Speed:</strong> ${vel.toFixed(2)} m/s
 `;
