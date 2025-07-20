@@ -162,7 +162,7 @@ const animate = () => {
     Z: ${acc.z.toFixed(2)}<br>
     <strong>Forces (N):</strong><br>
     Gravity: ${gravityForce.length().toFixed(2)}<br>
-    Drag: ${dragForce.length().toFixed(2)}<br>
+    Drag: ${dragForce.length().toFixed(10)}<br>
     <strong>Altitude:</strong><br>
     ${(alt / 1000).toFixed(2)} km
   `;

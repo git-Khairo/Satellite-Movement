@@ -50,6 +50,7 @@ export class PhysicsEngine {
         const speed = this.velocity.length();
         const dragMag = 0.5 * this.airDensity * speed * speed * this.dragCoefficient * this.satelliteArea;
         this._dragForce = this.velocity.clone().normalize().multiplyScalar(-dragMag);
+        console.log(dragMag);
         return this._dragForce;
     }
 
@@ -62,12 +63,14 @@ export class PhysicsEngine {
     }
 
     getDragForce() {
+        //console.log(this._dragForce.clone());
         return this._dragForce.clone();
     }
 
     update(dt) {
         const Fg = this.computeGravity();
         const Fd = this.computeDrag();
+        //console.log(Fd);
         const Fnet = Fg.add(Fd);
 
         this._acceleration = Fnet.clone().divideScalar(this.mass);
