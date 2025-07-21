@@ -21,7 +21,7 @@ scene.background = cubeTextureLoader.load([
 const earth = new Earth(new THREE.Vector3(0, 0, 0), 6371000);
 scene.add(earth.getObject());
 
-const satellite = new Satellite(new THREE.Vector3(0, 0, 6371000 + 600000)); // 600km LEO
+const satellite = new Satellite(new THREE.Vector3(0, 0, 6371000+600000 )); // 600km LEO
 satellite.getObject().scale.set(100000, 100000, 100000);
 scene.add(satellite.getObject());
 
@@ -88,6 +88,7 @@ orbitTypeSelect.addEventListener('change', () => {
 
 // Handle form submission
 document.getElementById('apply').addEventListener('click', () => {
+  satellite.getObject().visible = true;
   const planet = document.getElementById('planet').value;
   const altitude = parseFloat(document.getElementById('altitude').value) * 1000; // Convert km to m
   const orbitType = document.getElementById('orbitType').value;
@@ -109,6 +110,15 @@ document.getElementById('apply').addEventListener('click', () => {
 
 // === USER INPUT ===
 document.addEventListener('keydown', (e) => {
+    if (e.key === 'R') {
+    physics.applyThrust(100); // Try to rescue
+    hidePopup();
+  }
+  if (e.key === 'C') {
+        console.log('🛰️ No rescue — satellite will continue descent.');
+        hidePopup();
+  }
+
   switch (e.key.toUpperCase()) {
     case 'X': // Escape trajectory
       physics.changeOrbitType('escape');
@@ -128,8 +138,45 @@ document.addEventListener('keydown', (e) => {
     case 'S':
       physics.createInclinedOrbit(45, 800_000, 'elliptical');
       break; // Inclined
+
+      
   }
 });
+
+let paused = false;
+let countdownTimer = null;
+
+export function showCrashWarning() {
+    const popup = document.getElementById('popup');
+    const countdown = document.getElementById('countdown');
+    popup.style.display = 'block';
+    paused = true;
+
+    let seconds = 10;
+    countdown.textContent = `Crash in: ${seconds}s`;
+
+    countdownTimer = setInterval(() => {
+        seconds--;
+        countdown.textContent = `Crash in: ${seconds}s`;
+        if (seconds <= 0) {
+            clearInterval(countdownTimer);
+            popup.style.display = 'none';
+            playCrashSound();
+            paused = false;
+        }
+    }, 1000);
+}
+
+function hidePopup() {
+    document.getElementById('popup').style.display = 'none';
+    if (countdownTimer) clearInterval(countdownTimer);
+    paused = false;
+}
+
+function playCrashSound() {
+    const audio = document.getElementById('crash-sound');
+    if (audio) audio.play();
+}
 
 // === MAIN LOOP ===
 const animate = () => {
@@ -167,12 +214,14 @@ const animate = () => {
     ${(alt / 1000).toFixed(2)} km
   `;
 
-  physics.update(10);         // update satellite physics
+
+  if(!paused){
+  physics.update(1);         // update satellite physics
   earth.update();           // rotate Earth slowly
   //satellite.update();       // optional satellite rotation
   cameraManager.update();     // apply camera mode logic
   controls.update();          // orbit controls (only for free mode)
-
+  }
   renderer.render(scene, camera);
 };
 

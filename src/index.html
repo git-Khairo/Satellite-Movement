@@ -130,6 +130,18 @@
       <button id="apply">Apply</button>
     </div>
 
+<!-- Warning Popup -->
+<div id="popup" style="display:none; position: fixed; top: 30%; left: 50%; transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.9); color: white; padding: 20px; border-radius: 10px; font-family: monospace;
+    z-index: 9999; text-align: center;">
+    <p id="popup-msg">⚠️ Satellite is entering the atmosphere!</p>
+    <p id="countdown">Crash in: 10s</p>
+    <button onclick="window.dispatchEvent(new KeyboardEvent('keydown', {key: 'R'}))">Rescue (R)</button>
+    <button onclick="window.dispatchEvent(new KeyboardEvent('keydown', {key: 'C'}))">Continue (C)</button>
+</div>
+
+<!-- Crash Sound -->
+<audio id="crash-sound" src="sounds/crash.mp3" preload="auto"></audio>
     <!-- Your App Entry Point -->
     <script type="module" src="./main.js"></script>
   </body>

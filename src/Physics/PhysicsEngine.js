@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { showCrashWarning } from '../main';
 
 export class PhysicsEngine {
     constructor(scene, earthObj, satelliteObj) {
@@ -50,7 +51,7 @@ export class PhysicsEngine {
         const speed = this.velocity.length();
         const dragMag = 0.5 * this.airDensity * speed * speed * this.dragCoefficient * this.satelliteArea;
         this._dragForce = this.velocity.clone().normalize().multiplyScalar(-dragMag);
-        console.log(dragMag);
+       // console.log(dragMag);
         return this._dragForce;
     }
 
@@ -68,6 +69,21 @@ export class PhysicsEngine {
     }
 
     update(dt) {
+
+        const currentAltitude = this.position.length() - this.earthRadius;
+
+    // Warn if altitude too low
+        if (currentAltitude < 200000 && !this.lowAltitudeWarned) {
+            const warnMsg = `⚠️ Satellite dangerously low: ${Math.round(currentAltitude / 1000)} km!`;
+            console.warn(warnMsg);
+            if (this.infoBox) this.infoBox.innerText += `\n${warnMsg}`;
+            this.lowAltitudeWarned = true;
+
+            if (typeof showCrashWarning === 'function') {
+            showCrashWarning();
+            }
+        }
+
         const Fg = this.computeGravity();
         const Fd = this.computeDrag();
         //console.log(Fd);
@@ -78,6 +94,17 @@ export class PhysicsEngine {
         this.position.add(this.velocity.clone().multiplyScalar(dt));
 
         this.satellite.getObject().position.copy(this.position);
+
+            // CRASH CHECK
+        if (this.position.length() <= this.earthRadius) {
+            const crashMsg = '💥 Satellite has crashed into Earth!';
+            console.warn(crashMsg);
+            if (this.infoBox) this.infoBox.innerText += `\n${crashMsg}`;
+            this.satellite.getObject().visible = false;
+            this.velocity.set(0, 0, 0);
+            this.pathPoints = [];
+            return;
+        }
 
         const mu = this.G * this.earthMass;
         const r = this.position.length();
