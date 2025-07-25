@@ -51,7 +51,6 @@ export class PhysicsEngine {
         const speed = this.velocity.length();
         const dragMag = 0.5 * this.airDensity * speed * speed * this.dragCoefficient * this.satelliteArea;
         this._dragForce = this.velocity.clone().normalize().multiplyScalar(-dragMag);
-       // console.log(dragMag);
         return this._dragForce;
     }
 
@@ -64,15 +63,13 @@ export class PhysicsEngine {
     }
 
     getDragForce() {
-        //console.log(this._dragForce.clone());
         return this._dragForce.clone();
     }
 
     update(dt) {
-
         const currentAltitude = this.position.length() - this.earthRadius;
 
-    // Warn if altitude too low
+        // Warn if altitude too low
         if (currentAltitude < 200000 && !this.lowAltitudeWarned) {
             const warnMsg = `⚠️ Satellite dangerously low: ${Math.round(currentAltitude / 1000)} km!`;
             console.warn(warnMsg);
@@ -80,13 +77,12 @@ export class PhysicsEngine {
             this.lowAltitudeWarned = true;
 
             if (typeof showCrashWarning === 'function') {
-            showCrashWarning();
+                showCrashWarning();
             }
         }
 
         const Fg = this.computeGravity();
         const Fd = this.computeDrag();
-        //console.log(Fd);
         const Fnet = Fg.add(Fd);
 
         this._acceleration = Fnet.clone().divideScalar(this.mass);
@@ -95,7 +91,7 @@ export class PhysicsEngine {
 
         this.satellite.getObject().position.copy(this.position);
 
-            // CRASH CHECK
+        // CRASH CHECK
         if (this.position.length() <= this.earthRadius) {
             const crashMsg = '💥 Satellite has crashed into Earth!';
             console.warn(crashMsg);
@@ -157,15 +153,19 @@ export class PhysicsEngine {
         this.applyThrust(deltaV1);
         this.circularizationPending = true;
         this.r2 = r2;
+        console.log(`Initiating transfer to ${newAltitude / 1000} km: Δv = ${deltaV1.toFixed(2)} m/s`);
     }
 
     circularize() {
         const mu = this.G * this.earthMass;
-        const vCirc = Math.sqrt(mu / this.r2);
+        const r = this.position.length(); // Use current position's radius
+        const vCirc = Math.sqrt(mu / r); // Circular orbit velocity at current radius
+        const direction = this.velocity.clone().normalize(); // Maintain current orbital plane
         const vCurrent = this.velocity.length();
         const deltaV2 = vCirc - vCurrent;
-        this.applyThrust(deltaV2);
-        console.log(`Second burn complete. Orbit circularized at ${(this.r2 - this.earthRadius) / 1000} km.`);
+        this.velocity.copy(direction.multiplyScalar(vCirc)); // Set velocity magnitude to circular orbit velocity
+        console.log(`Orbit circularized at ${(r - this.earthRadius) / 1000} km: Δv = ${deltaV2.toFixed(2)} m/s`);
+        this.pathPoints = []; // Clear path to start fresh orbit trail
     }
 
     createInclinedOrbit(inclinationDeg, altitude = 500_000, type = "circular") {

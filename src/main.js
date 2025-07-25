@@ -79,6 +79,9 @@ const planetData = {
   Moon: { mass: 7.346e22, G: 6.67430e-11 }
 };
 
+// Track if simulation has started
+let hasStarted = false;
+
 // Toggle inclination input visibility
 const orbitTypeSelect = document.getElementById('orbitType');
 const inclinationDiv = document.getElementById('inclinationDiv');
@@ -98,25 +101,44 @@ document.getElementById('apply').addEventListener('click', () => {
   physics.earthMass = planetData[planet].mass;
   physics.G = planetData[planet].G;
 
-  // Set orbit based on type
-  if (orbitType === 'equatorial') {
-    physics.createInclinedOrbit(90, altitude, 'circular');
-  } else if (orbitType === 'polar') {
-    physics.createInclinedOrbit(0, altitude, 'circular');
-  } else if (orbitType === 'inclined') {
-    physics.createInclinedOrbit(inclination, altitude, 'elliptical');
+  // Validate altitude
+  if (isNaN(altitude) || altitude < 100000 || altitude > 10000000) {
+    console.warn('Invalid altitude: Must be between 100 and 10000 km.');
+    return;
   }
+
+  // If simulation hasn't started, set initial orbit
+  if (!hasStarted) {
+    if (orbitType === 'equatorial') {
+      physics.createInclinedOrbit(90, altitude, 'circular');
+    } else if (orbitType === 'polar') {
+      physics.createInclinedOrbit(0, altitude, 'circular');
+    } else if (orbitType === 'inclined') {
+      physics.createInclinedOrbit(inclination, altitude, 'elliptical');
+    }
+    hasStarted = true; // Mark simulation as started
+  } else {
+    // If simulation is running, perform orbital transfer to new altitude
+    physics.performOrbitalTransfer(altitude);
+    console.log(`Initiating orbital transfer to ${altitude / 1000} km`);
+  }
+});
+
+// Handle reset button
+document.getElementById('reset').addEventListener('click', () => {
+  hasStarted = false; // Reset simulation state
+  window.location.reload();
 });
 
 // === USER INPUT ===
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'R') {
+  if (e.key === 'R') {
     physics.applyThrust(100); // Try to rescue
     hidePopup();
   }
   if (e.key === 'C') {
-        console.log('🛰️ No rescue — satellite will continue descent.');
-        hidePopup();
+    console.log('🛰️ No rescue — satellite will continue descent.');
+    hidePopup();
   }
 
   switch (e.key.toUpperCase()) {
@@ -138,8 +160,6 @@ document.addEventListener('keydown', (e) => {
     case 'S':
       physics.createInclinedOrbit(45, 800_000, 'elliptical');
       break; // Inclined
-
-      
   }
 });
 
@@ -214,13 +234,12 @@ const animate = () => {
     ${(alt / 1000).toFixed(2)} km
   `;
 
-
-  if(!paused){
-  physics.update(1);         // update satellite physics
-  earth.update();           // rotate Earth slowly
-  //satellite.update();       // optional satellite rotation
-  cameraManager.update();     // apply camera mode logic
-  controls.update();          // orbit controls (only for free mode)
+  if (!paused) {
+    physics.update(1);         // update satellite physics
+    earth.update();           // rotate Earth slowly
+    //satellite.update();       // optional satellite rotation
+    cameraManager.update();     // apply camera mode logic
+    controls.update();          // orbit controls (only for free mode)
   }
   renderer.render(scene, camera);
 };
