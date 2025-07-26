@@ -124,6 +124,13 @@ document.getElementById('apply').addEventListener('click', () => {
   }
 });
 
+let speed = 1;
+
+document.getElementById('speed').addEventListener('change', () => {
+  speed = document.getElementById('speed').value;
+  console.log(speed);
+});
+
 // Handle reset button
 document.getElementById('reset').addEventListener('click', () => {
   hasStarted = false; // Reset simulation state
@@ -235,7 +242,7 @@ const animate = () => {
   `;
 
   if (!paused) {
-    physics.update(1);         // update satellite physics
+    physics.update(speed);         // update satellite physics
     earth.update();           // rotate Earth slowly
     //satellite.update();       // optional satellite rotation
     cameraManager.update();     // apply camera mode logic
