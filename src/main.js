@@ -128,7 +128,6 @@ let speed = 1;
 
 document.getElementById('speed').addEventListener('change', () => {
   speed = document.getElementById('speed').value;
-  console.log(speed);
 });
 
 // Handle reset button
