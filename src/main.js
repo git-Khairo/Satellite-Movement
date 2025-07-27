@@ -89,6 +89,8 @@ orbitTypeSelect.addEventListener('change', () => {
   inclinationDiv.style.display = orbitTypeSelect.value === 'inclined' ? 'block' : 'none';
 });
 
+let isPath = false;
+
 // Handle form submission
 document.getElementById('apply').addEventListener('click', () => {
   satellite.getObject().visible = true;
@@ -96,6 +98,7 @@ document.getElementById('apply').addEventListener('click', () => {
   const altitude = parseFloat(document.getElementById('altitude').value) * 1000; // Convert km to m
   const orbitType = document.getElementById('orbitType').value;
   const inclination = parseFloat(document.getElementById('inclination').value) || 0;
+  isPath = document.getElementById('get-path').checked ? true : false;
 
   // Update physics engine parameters
   physics.earthMass = planetData[planet].mass;
@@ -241,7 +244,7 @@ const animate = () => {
   `;
 
   if (!paused) {
-    physics.update(speed);         // update satellite physics
+    physics.update(speed, isPath);         // update satellite physics
     earth.update();           // rotate Earth slowly
     //satellite.update();       // optional satellite rotation
     cameraManager.update();     // apply camera mode logic

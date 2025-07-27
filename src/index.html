@@ -31,6 +31,13 @@
         font-size: 14px;
         margin-bottom: 10px;
       }
+
+      #path {
+        display: inline-flex;
+        align-items: center;
+      }
+
+
       #control-panel label {
         display: block;
         margin-bottom: 5px;
@@ -150,6 +157,10 @@
       <div id="inclinationDiv">
         <label>Inclination (°)</label>
         <input id="inclination" type="number" min="0" max="180" value="45">
+      </div>
+      <div id="path">
+        <input id="get-path" type="checkbox" name="path">
+        <label for="path">Show Path</label>
       </div>
       <button id="apply">Apply</button>
       <button id="reset">Reset</button>

@@ -26,7 +26,7 @@ export class PhysicsEngine {
 
         this.mass = 500;
         this.pathPoints = [];
-        this.pathMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff });
+        this.pathMaterial = new THREE.LineBasicMaterial({ color: 0xff00ff });
 
         this.circularizationPending = false;
         this.r2 = null;
@@ -66,7 +66,7 @@ export class PhysicsEngine {
         return this._dragForce.clone();
     }
 
-    update(dt) {
+    update(dt, isPath) {
         const currentAltitude = this.position.length() - this.earthRadius;
 
         // Warn if altitude too low
@@ -113,8 +113,10 @@ export class PhysicsEngine {
         this.pathPoints.push(this.position.clone());
         if (this.pathPoints.length > 2000) this.pathPoints.shift();
         const geometry = new THREE.BufferGeometry().setFromPoints(this.pathPoints);
-        const pathLine = new THREE.Line(geometry, this.pathMaterial);
-        this.scene.add(pathLine);
+        if(isPath){
+            const pathLine = new THREE.Line(geometry, this.pathMaterial);
+            this.scene.add(pathLine);
+        }
 
         if (this.circularizationPending && Math.abs(this.position.length() - this.r2) < 1000) {
             this.circularize();
