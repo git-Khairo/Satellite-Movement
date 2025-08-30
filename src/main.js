@@ -91,16 +91,16 @@ orbitTypeSelect.addEventListener('change', () => {
 
 let isPath = false;
 
-// Handle form submission
 document.getElementById('apply').addEventListener('click', () => {
   satellite.getObject().visible = true;
+
   const planet = document.getElementById('planet').value;
-  const altitude = parseFloat(document.getElementById('altitude').value) * 1000; // Convert km to m
+  const altitude = parseFloat(document.getElementById('altitude').value) * 1000; // km → m
   const orbitType = document.getElementById('orbitType').value;
   const inclination = parseFloat(document.getElementById('inclination').value) || 0;
   isPath = document.getElementById('get-path').checked ? true : false;
 
-  // Update physics engine parameters
+  // Update planet parameters
   physics.earthMass = planetData[planet].mass;
   physics.G = planetData[planet].G;
 
@@ -110,22 +110,50 @@ document.getElementById('apply').addEventListener('click', () => {
     return;
   }
 
-  // If simulation hasn't started, set initial orbit
+  // === Orbit setup / update ===
   if (!hasStarted) {
+    // Initial setup
     if (orbitType === 'equatorial') {
-      physics.createInclinedOrbit(90, altitude, 'circular');
-    } else if (orbitType === 'polar') {
       physics.createInclinedOrbit(0, altitude, 'circular');
+    } else if (orbitType === 'polar') {
+      physics.createInclinedOrbit(90, altitude, 'circular');
     } else if (orbitType === 'inclined') {
       physics.createInclinedOrbit(inclination, altitude, 'elliptical');
     }
-    hasStarted = true; // Mark simulation as started
+    hasStarted = true;
   } else {
-    // If simulation is running, perform orbital transfer to new altitude
-    physics.performOrbitalTransfer(altitude);
-    console.log(`Initiating orbital transfer to ${altitude / 1000} km`);
+    // If orbit type has changed → reset
+    const currentType = physics.currentOrbitType || null; // track inside PhysicsEngine
+    if (orbitType !== currentType) {
+      if (orbitType === 'equatorial') {
+        physics.createInclinedOrbit(0, altitude, 'circular');
+      } else if (orbitType === 'polar') {
+        physics.createInclinedOrbit(90, altitude, 'circular');
+      } else if (orbitType === 'inclined') {
+        physics.createInclinedOrbit(inclination, altitude, 'elliptical');
+      }
+    } else {
+      // Same orbit type → perform transfer
+      physics.performOrbitalTransfer(altitude);
+      console.log(`Performing transfer to ${altitude / 1000} km`);
+    }
   }
+
+  // Save current orbit type in physics for later comparison
+  physics.currentOrbitType = orbitType;
+
+  // Log orbital period
+  const T = physics.getOrbitalPeriod();
+  if (T) {
+    console.log(`🕑 Orbital period: ${(T / 60).toFixed(2)} minutes`);
+  }
+
+  // Keep camera target locked on Earth
+  controls.target.copy(earth.getObject().position);
 });
+
+
+
 
 let speed = 1;
 
@@ -155,7 +183,7 @@ document.addEventListener('keydown', (e) => {
       physics.changeOrbitType('escape');
       break;
     case 'T': // Orbital transfer to 1500 km
-      physics.performOrbitalTransfer(1500000);
+      physics.performOrbitalTransfer(1200000);
       break;
     case 'B': // Boost thrust
       physics.applyThrust(100);
@@ -240,8 +268,16 @@ const animate = () => {
     Gravity: ${gravityForce.length().toFixed(2)}<br>
     Drag: ${dragForce.length().toFixed(10)}<br>
     <strong>Altitude:</strong><br>
-    ${(alt / 1000).toFixed(2)} km
+    ${(alt / 1000).toFixed(2)} km<br>
   `;
+
+  const T = physics.getOrbitalPeriod();
+document.getElementById('sidebar').innerHTML += `
+
+  <strong>Orbital Period:</strong><br>
+  ${T ? (T / 60).toFixed(2) + ' min' : 'N/A'}
+`;
+
 
   if (!paused) {
     physics.update(speed, isPath);         // update satellite physics

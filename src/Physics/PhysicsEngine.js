@@ -230,4 +230,13 @@ export class PhysicsEngine {
         // Reset orbit history for clean path rendering
         this.pathPoints = [];
     }
+
+    getOrbitalPeriod() {
+  const r = this.position.length(); // distance from Earth center
+  const v = this.velocity.length(); // orbital speed
+  if (v === 0) return null;
+  return (2 * Math.PI * r) / v; // seconds
+}
+
+    
 }
