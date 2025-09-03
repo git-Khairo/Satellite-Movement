@@ -18,7 +18,7 @@ scene.background = cubeTextureLoader.load([
 ]);
 
 // === OBJECTS ===
-const earth = new Earth(new THREE.Vector3(0, 0, 0), 6371000);
+const earth = new Earth("earth",new THREE.Vector3(0, 0, 0), 6371000);
 scene.add(earth.getObject());
 
 const satellite = new Satellite(new THREE.Vector3(0, 0, 6371000+600000 )); // 600km LEO
@@ -90,6 +90,11 @@ orbitTypeSelect.addEventListener('change', () => {
 });
 
 let isPath = false;
+
+document.getElementById("planet").addEventListener("change", (e) => {
+  const selected = e.target.value; // "earth" | "mars" | "moon"
+  earth.changePlanet(selected);
+});
 
 document.getElementById('apply').addEventListener('click', () => {
   satellite.getObject().visible = true;
@@ -183,7 +188,7 @@ document.addEventListener('keydown', (e) => {
       physics.changeOrbitType('escape');
       break;
     case 'T': // Orbital transfer to 1500 km
-      physics.performOrbitalTransfer(1200000);
+      physics.performOrbitalTransfer(1500000);
       break;
     case 'B': // Boost thrust
       physics.applyThrust(100);

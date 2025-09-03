@@ -1,72 +1,111 @@
 import * as THREE from 'three';
 
+export class Earth {
+  constructor(name = "earth", position = new THREE.Vector3(0, 0, 0), radius = 100) {
+    this.planet = new THREE.Group();
+    this.radius = radius;
+    this.name = name;
+    this.planet.position.copy(position);
+    this.draw(name); 
+  }
 
-export class Earth{
+  draw(name) {
+    const radius = this.radius;
+    const textureLoader = new THREE.TextureLoader();
+    const tilt = 0.41;
+    const cloudsScale = 1.005;
 
-    constructor(position = new THREE.Vector3(0, 0, 0),radius = 0) {
-    this.earth = new THREE.Group();
-    this.radius=radius
-    this.earth.position.copy(position);
-    this.draw(); // construct geometry
+    let geometry = new THREE.SphereGeometry(radius, 100, 50);
+
+
+    let textures = this.getTextures(name);
+
+
+    const material = new THREE.MeshPhongMaterial({
+      map: textureLoader.load(textures.map),
+      specular: 0x7c7c7c,
+      shininess: 15,
+    });
+
+    if (textures.specular) {
+      material.specularMap = textureLoader.load(textures.specular);
+    }
+    if (textures.normal) {
+      material.normalMap = textureLoader.load(textures.normal);
+      material.normalScale = new THREE.Vector2(0.85, -0.85);
     }
 
+    material.map.colorSpace = THREE.SRGBColorSpace;
 
-    draw(){
-        const radius = this.radius;
-        const textureLoader = new THREE.TextureLoader();
-        const tilt = 0.41;
+    this.meshPlanet = new THREE.Mesh(geometry, material);
+    this.meshPlanet.rotation.y = 0;
+    this.meshPlanet.rotation.z = tilt;
+    this.planet.add(this.meshPlanet);
 
-		const cloudsScale = 1.005;
 
-		let geometry, meshPlanet, meshClouds;
-				// planet
-				const materialNormalMap = new THREE.MeshPhongMaterial( {
+    if (textures.clouds) {
+      const materialClouds = new THREE.MeshLambertMaterial({
+        map: textureLoader.load(textures.clouds),
+        transparent: true,
+      });
+      materialClouds.map.colorSpace = THREE.SRGBColorSpace;
 
-					specular: 0x7c7c7c,
-					shininess: 15,
-					map: textureLoader.load( 'textures/planets/earth_atmos_2048.jpg' ),
-					specularMap: textureLoader.load( 'textures/planets/earth_specular_2048.jpg' ),
-					normalMap: textureLoader.load( 'textures/planets/earth_normal_2048.jpg' ),
-
-					// y scale is negated to compensate for normal map handedness.
-					normalScale: new THREE.Vector2( 0.85, - 0.85 )
-
-				} );
-				materialNormalMap.map.colorSpace = THREE.SRGBColorSpace;
-
-				geometry = new THREE.SphereGeometry( radius, 100, 50 );
-
-				meshPlanet = new THREE.Mesh( geometry, materialNormalMap );
-				meshPlanet.rotation.y = 0;
-				meshPlanet.rotation.z = tilt;
-				this.earth.add(meshPlanet);
-
-				// clouds
-
-				const materialClouds = new THREE.MeshLambertMaterial( {
-
-					map: textureLoader.load( 'textures/planets/earth_clouds_1024.png' ),
-					transparent: true
-
-				} );
-				materialClouds.map.colorSpace = THREE.SRGBColorSpace;
-
-				meshClouds = new THREE.Mesh( geometry, materialClouds );
-				meshClouds.scale.set( cloudsScale, cloudsScale, cloudsScale );
-				meshClouds.rotation.z = tilt;
-				this.earth.add( meshClouds );
-
+      this.meshClouds = new THREE.Mesh(geometry, materialClouds);
+      this.meshClouds.scale.set(cloudsScale, cloudsScale, cloudsScale);
+      this.meshClouds.rotation.z = tilt;
+      this.planet.add(this.meshClouds);
     }
+  }
 
-
-    update() {
-    this.earth.rotation.y += 0.002;
+  // function to return texture paths for each planet
+  getTextures(name) {
+    switch (name.toLowerCase()) {
+      case "earth":
+        return {
+          map: "textures/planets/earth_atmos_2048.jpg",
+          specular: "textures/planets/earth_specular_2048.jpg",
+          normal: "textures/planets/earth_normal_2048.jpg",
+          clouds: "textures/planets/earth_clouds_1024.png",
+		  specular: 0x7c7c7c,
+          shininess: 15,
+        };
+      case "mars":
+        return {
+          map: "textures/planets/mars.png",
+		 specular: 0x7c7c7c,
+         shininess: 15,
+        };
+      case "moon":
+        return {
+          map: "textures/planets/moon_1024.jpg",
+		  specular: 0x7c7c7c,
+          shininess: 15,
+        };
+      default:
+        return {
+          map: "textures/planets/earth_atmos_2048.jpg",
+		specular: 0x7c7c7c,
+         shininess: 15,
+        };
     }
+  }
 
-    getObject() {
-    return this.earth;
-    }
+  // 🔄 function to change textures dynamically
+  changePlanet(name) {
+    this.name = name;
 
+    // Remove old meshes
+    this.planet.clear();
 
+    // Redraw with new textures
+    this.draw(name);
+  }
 
+  update() {
+    this.planet.rotation.y += 0.002;
+  }
+
+  getObject() {
+    return this.planet;
+  }
 }
